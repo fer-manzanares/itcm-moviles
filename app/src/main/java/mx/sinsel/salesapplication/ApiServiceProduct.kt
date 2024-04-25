@@ -9,7 +9,7 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-private val retrofitProduct = Retrofit.Builder().baseUrl("http://192.168.1.13:8081/")
+private val retrofitProduct = Retrofit.Builder().baseUrl("http://192.168.43.241:8443/")
     .addConverterFactory(GsonConverterFactory.create())
     .build()
 

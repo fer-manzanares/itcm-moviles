@@ -1,14 +1,20 @@
 package mx.sinsel.salesapplication
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
+import java.util.Base64
 
 class SalesApplicationViewModel : ViewModel() {
     private val _productState = mutableStateOf(ProductState())
     var productState: State<ProductState> = _productState
+    var bitmap : Bitmap? = null
     private val _categoriesState = mutableStateOf(CategoryState())
     val categoriesState: State<CategoryState> = _categoriesState
     val productView = Product()
@@ -17,8 +23,9 @@ class SalesApplicationViewModel : ViewModel() {
     var productPrice = mutableStateOf("")
     var productQuantity = mutableStateOf("")
     var productUpc = mutableStateOf("")
-    var productImage = mutableStateOf(productView.image)
+    var productImage = mutableStateOf(bitmap)
     var productCategory = mutableStateOf(Category())
+    var messageProductDescError = mutableStateOf(false)
 
     init {
         fetchCategories()
@@ -57,6 +64,7 @@ class SalesApplicationViewModel : ViewModel() {
         val error: String? = null
     )
 
+    @RequiresApi(Build.VERSION_CODES.O)
     suspend fun consultProduct() {
         if (productUpc.value != "") {
             try {
@@ -71,6 +79,7 @@ class SalesApplicationViewModel : ViewModel() {
                 productPrice.value = "$ ${response.price}"
                 productQuantity.value = response.quantity
                 productCategory.value = response.category
+                productImage.value = convertImageByteArrayToBitmap(Base64.getDecoder().decode(response.image))
             } catch (e: Exception) {
                 _productState.value = _productState.value.copy(
                     loading = false,
@@ -80,7 +89,7 @@ class SalesApplicationViewModel : ViewModel() {
             }
 
         } else {
-
+            messageProductDescError.value = true
         }
     }
 
@@ -101,3 +110,7 @@ class SalesApplicationViewModel : ViewModel() {
 }
 
 
+
+fun convertImageByteArrayToBitmap(imageData: ByteArray): Bitmap {
+    return BitmapFactory.decodeByteArray(imageData, 0, imageData.size)
+}
