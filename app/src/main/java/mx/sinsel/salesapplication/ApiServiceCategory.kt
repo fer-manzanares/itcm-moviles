@@ -3,7 +3,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 
-private val retrofitCategory = Retrofit.Builder().baseUrl("http://192.168.43.241:8443/")
+private val retrofitCategory = Retrofit.Builder().baseUrl("http://192.168.43.83:8443/")
     .addConverterFactory(GsonConverterFactory.create())
     .build()
 

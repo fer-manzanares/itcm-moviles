@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
 import java.util.Base64
 
 class SalesApplicationViewModel : ViewModel() {
@@ -93,12 +94,27 @@ class SalesApplicationViewModel : ViewModel() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     suspend fun createProduct() {
         productView.upc= productUpc.value
         productView.description = productDescription.value
         productView.price = productPrice.value
         productView.quantity = productQuantity.value
         productView.category = productCategory.value
+        when {
+            productImage.value != null -> {
+                val byteArrayOutputStream = ByteArrayOutputStream()
+                productImage.value!!.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+                val byteArray = byteArrayOutputStream.toByteArray()
+                val encoded: String = Base64.getEncoder().encodeToString(byteArray)
+                productView.image = encoded
+                println("Image: with image")
+            }
+            else -> {
+                productView.image = ""
+                println("Image: without image")
+            }
+        }
         try {
             println("Trying product creation: ${productView.toString()}")
             productService.postProduct(productView)
@@ -113,4 +129,9 @@ class SalesApplicationViewModel : ViewModel() {
 
 fun convertImageByteArrayToBitmap(imageData: ByteArray): Bitmap {
     return BitmapFactory.decodeByteArray(imageData, 0, imageData.size)
+}
+
+fun convertBitmapToByteArray(bitmap: Bitmap) : ByteArray {
+    val stream = ByteArrayOutputStream()
+    return stream.toByteArray()
 }
