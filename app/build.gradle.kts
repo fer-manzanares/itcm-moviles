@@ -50,6 +50,8 @@ android {
 }
 
 dependencies {
+    //Zxing library (Bar and QR codes)
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
 
     //Network calls
     implementation("com.squareup.retrofit2:retrofit:2.9.0")

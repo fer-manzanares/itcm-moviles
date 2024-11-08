@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.Nullable
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -68,6 +69,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toFile
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.zxing.integration.android.IntentIntegrator
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -77,6 +81,7 @@ import java.util.Date
 import java.util.Objects
 import java.util.regex.Pattern
 
+var upc1: String? = null
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ProductScreen(modifier: Modifier = Modifier, activity: ComponentActivity) {
@@ -95,14 +100,14 @@ fun ProductScreen(modifier: Modifier = Modifier, activity: ComponentActivity) {
         .height(150.dp)
         .border(BorderStroke(1.dp, Color.Black))
 
+    val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         salesApplicationViewModel.productImage.value =
             result.data?.extras?.get("data") as Bitmap ?: null
     }
-
-    val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
 
     val cameraPermissionRequest =
         rememberLauncherForActivityResult(
@@ -118,6 +123,13 @@ fun ProductScreen(modifier: Modifier = Modifier, activity: ComponentActivity) {
                 ).show()
             }
         }
+
+    val scanLauncher = rememberLauncherForActivityResult(
+        contract = ScanContract(),
+        onResult = { result -> println("TEST scanned code: ${result.contents}")
+            upc = result.contents
+        }
+    )
 
     when {
         !categoriesState.loading && categoriesState.error == null -> {
@@ -275,6 +287,13 @@ fun ProductScreen(modifier: Modifier = Modifier, activity: ComponentActivity) {
                         }
                     }) {
                         Text(text = "Consultar")
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(onClick = {
+                        scanLauncher.launch(ScanOptions())
+                    }) {
+                        Text(text = "Código")
                     }
                 }
             }
@@ -455,5 +474,30 @@ fun rememberPhotoCamera(): ImageVector {
                 close()
             }
         }.build()
+    }
+}
+
+fun onActivityResult(requestCode: Int, resultCode: Int, @Nullable data: Intent?) {
+
+    val intentResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
+    // if the intentResult is null then
+    // toast a message as "cancelled"
+    println("TEST resultado:")
+    if (intentResult != null) {
+        if (intentResult.contents == null) {
+            println("TESTcancelled")
+
+        } else {
+            // if the intentResult is not null we'll set
+            // the content and format of scan message
+            //messageText.setText(intentResult.contents)
+            //messageFormat.setText(intentResult.formatName)
+            //result = intentResult.contents
+            upc1 = intentResult.contents
+            println("TEST ${intentResult.contents}")
+            println("TEST ${intentResult.formatName}")
+        }
+    } else {
+        println("TEST nulo")
     }
 }
